@@ -1,0 +1,8 @@
+.git
+.gitignore
+README.md
+VERCEL_DEPLOY.md
+node_modules
+.env.local
+.DS_Store
+*.log
