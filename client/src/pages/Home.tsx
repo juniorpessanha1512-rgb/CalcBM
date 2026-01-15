@@ -6,9 +6,9 @@ import { Trash2, Plus } from 'lucide-react';
 
 /**
  * Design: BM Calculadora Tripeiro Pro 2026
- * - Tema dark moderno com fundo visual atrativo
- * - Paleta: Navy/Black com acentos em dourado e vermelho
- * - Layout similar ao calcrb.com com campo de valores diários
+ * - Fundo épico com chamas douradas e elementos visuais marcantes
+ * - Card centralizado com design premium
+ * - Paleta: Dourado, Vermelho, Branco sobre fundo dark
  */
 export default function Home() {
   const {
@@ -40,7 +40,6 @@ export default function Home() {
     const input = valuesInput[bossId] || '';
     if (!input.trim()) return;
 
-    // Separar valores por + e adicionar cada um
     const values = input
       .split('+')
       .map(v => parseFloat(v.trim()))
@@ -50,7 +49,6 @@ export default function Home() {
       addValue(bossId, value);
     });
 
-    // Limpar input
     setValuesInput({ ...valuesInput, [bossId]: '' });
   };
 
@@ -65,32 +63,33 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Fundo Visual */}
+    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center py-8">
+      {/* Fundo Épico */}
       <div 
-        className="fixed inset-0 opacity-30 pointer-events-none"
+        className="fixed inset-0 opacity-100"
         style={{
-          backgroundImage: 'url(/images/bg-hero.jpg)',
+          backgroundImage: 'url(/images/bg-epic.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed',
         }}
       />
       
-      {/* Overlay escuro */}
-      <div className="fixed inset-0 bg-gradient-to-b from-background/80 via-background/90 to-background pointer-events-none" />
+      {/* Overlay com gradiente */}
+      <div className="fixed inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80 pointer-events-none" />
 
       {/* Conteúdo */}
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="border-b border-border/50 bg-background/40 backdrop-blur-md sticky top-0 z-20">
-          <div className="container py-6">
+      <div className="relative z-10 w-full max-w-6xl px-4">
+        {/* Card Principal */}
+        <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl overflow-hidden border-4 border-yellow-400/30">
+          {/* Header do Card */}
+          <div className="bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 px-8 py-6">
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-500">
-                  BM Calculadora Tripeiro Pro 2026
+                <h1 className="text-4xl font-black text-black drop-shadow-lg">
+                  📊 BM Calculadora Tripeiro Pro 2026
                 </h1>
-                <p className="text-sm text-muted-foreground mt-2">
+                <p className="text-sm text-black/80 font-semibold mt-1">
                   {new Date().toLocaleDateString('pt-BR', {
                     weekday: 'long',
                     year: 'numeric',
@@ -100,170 +99,170 @@ export default function Home() {
                 </p>
               </div>
               <Button
-                variant="outline"
-                className="text-yellow-400 border-yellow-400/50 hover:text-yellow-300 hover:bg-yellow-400/10"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold text-lg px-6 py-3 rounded-lg shadow-lg"
                 onClick={clearDayData}
               >
-                🧹 Limpar Dados do Dia
+                🧹 Limpar Dados
               </Button>
             </div>
           </div>
-        </header>
 
-        {/* Main Content */}
-        <main className="container py-8">
-          {/* Formulário de Entrada */}
-          <div className="card-elevated-lg p-6 mb-8 bg-card/80 backdrop-blur-sm border-yellow-400/20">
-            <form onSubmit={handleAddBoss} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Nome do Patrão:</label>
-                <Input
-                  placeholder="Ex: João Silva"
-                  value={bossName}
-                  onChange={(e) => setBossName(e.target.value)}
-                  className="bg-background/50 border-yellow-400/30 focus:border-yellow-400"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-foreground">Porcentagem (%):</label>
-                <Input
-                  type="number"
-                  placeholder="Ex: 30"
-                  min="0"
-                  max="100"
-                  step="0.01"
-                  value={bossPercentage}
-                  onChange={(e) => setBossPercentage(e.target.value)}
-                  className="bg-background/50 border-yellow-400/30 focus:border-yellow-400"
-                />
-              </div>
-              <Button 
-                type="submit"
-                className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold"
-              >
-                💾 Salvar
-              </Button>
-            </form>
-          </div>
+          {/* Conteúdo */}
+          <div className="p-8">
+            {/* Formulário de Entrada */}
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-xl mb-8 border-2 border-yellow-400/20">
+              <form onSubmit={handleAddBoss} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-900 uppercase tracking-wide">Nome do Patrão:</label>
+                  <Input
+                    placeholder="Ex: João Silva"
+                    value={bossName}
+                    onChange={(e) => setBossName(e.target.value)}
+                    className="bg-white border-2 border-yellow-400/50 focus:border-yellow-500 font-semibold text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-bold text-gray-900 uppercase tracking-wide">Porcentagem (%):</label>
+                  <Input
+                    type="number"
+                    placeholder="Ex: 30"
+                    min="0"
+                    max="100"
+                    step="0.01"
+                    value={bossPercentage}
+                    onChange={(e) => setBossPercentage(e.target.value)}
+                    className="bg-white border-2 border-yellow-400/50 focus:border-yellow-500 font-semibold text-gray-900 placeholder:text-gray-400"
+                  />
+                </div>
+                <Button 
+                  type="submit"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold text-lg py-6 rounded-lg shadow-lg"
+                >
+                  💾 Salvar Patrão
+                </Button>
+              </form>
+            </div>
 
-          {/* Tabela de Patrões */}
-          <div className="card-elevated-lg overflow-hidden bg-card/80 backdrop-blur-sm border-yellow-400/20">
+            {/* Tabela de Patrões */}
             {state.bosses.length === 0 ? (
-              <div className="p-8 text-center space-y-4">
-                <p className="text-muted-foreground text-lg">Nenhum patrão cadastrado ainda.</p>
-                <p className="text-sm text-muted-foreground">
-                  Preencha o formulário acima e clique em "Salvar" para começar.
+              <div className="p-12 text-center space-y-4 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+                <p className="text-2xl font-bold text-gray-600">📭 Nenhum patrão cadastrado</p>
+                <p className="text-gray-500 font-semibold">
+                  Preencha o formulário acima e clique em "Salvar Patrão" para começar.
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-background/50 border-b border-yellow-400/20">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-yellow-400">Patrão</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-yellow-400">Valores</th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-yellow-400">Valores Diários (separados por +)</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-yellow-400">Total (R$)</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-red-400">Repasse (R$)</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-green-400">Meu (R$)</th>
-                      <th className="px-4 py-3 text-center text-sm font-semibold text-yellow-400">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {state.bosses.map((boss) => {
-                      const totalValue = boss.values.reduce((sum, val) => sum + val, 0);
-                      const bossShare = totalValue * (boss.percentage / 100);
-                      const myShare = totalValue - bossShare;
-                      const valuesDisplay = boss.values.length > 0 
-                        ? boss.values.map(v => v.toFixed(0)).join(' + ')
-                        : '-';
+              <>
+                <div className="overflow-x-auto mb-6">
+                  <table className="w-full">
+                    <thead className="bg-gradient-to-r from-yellow-400 to-yellow-500">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-sm font-black text-black uppercase">Patrão</th>
+                        <th className="px-4 py-3 text-left text-sm font-black text-black uppercase">Valores</th>
+                        <th className="px-4 py-3 text-left text-sm font-black text-black uppercase">Valores Diários</th>
+                        <th className="px-4 py-3 text-right text-sm font-black text-black uppercase">Total</th>
+                        <th className="px-4 py-3 text-right text-sm font-black text-red-600 uppercase">Repasse</th>
+                        <th className="px-4 py-3 text-right text-sm font-black text-green-600 uppercase">Meu</th>
+                        <th className="px-4 py-3 text-center text-sm font-black text-black uppercase">Ações</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {state.bosses.map((boss, idx) => {
+                        const totalValue = boss.values.reduce((sum, val) => sum + val, 0);
+                        const bossShare = totalValue * (boss.percentage / 100);
+                        const myShare = totalValue - bossShare;
+                        const valuesDisplay = boss.values.length > 0 
+                          ? boss.values.map(v => v.toFixed(0)).join(' + ')
+                          : '-';
 
-                      return (
-                        <tr key={boss.id} className="border-b border-yellow-400/10 hover:bg-background/30 transition-colors">
-                          <td className="px-4 py-3">
-                            <div>
-                              <p className="font-semibold text-foreground">{boss.name}</p>
-                              <p className="text-xs text-yellow-400/70">{boss.percentage}%</p>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <p className="text-sm text-yellow-400 font-mono-value">{valuesDisplay}</p>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex gap-2">
-                              <Input
-                                type="text"
-                                placeholder="Ex: 100+200+150"
-                                value={valuesInput[boss.id] || ''}
-                                onChange={(e) => handleInputChange(boss.id, e.target.value)}
-                                onKeyPress={(e) => handleKeyPress(e, boss.id)}
-                                className="bg-background/50 border-yellow-400/30 focus:border-yellow-400 text-sm"
-                              />
+                        return (
+                          <tr 
+                            key={boss.id} 
+                            className={`border-b-2 border-gray-200 ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-yellow-50 transition-colors`}
+                          >
+                            <td className="px-4 py-4">
+                              <div>
+                                <p className="font-black text-gray-900 text-lg">{boss.name}</p>
+                                <p className="text-sm font-bold text-yellow-600">{boss.percentage}%</p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <p className="text-sm font-mono font-bold text-gray-700">{valuesDisplay}</p>
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="flex gap-2">
+                                <Input
+                                  type="text"
+                                  placeholder="100+200+150"
+                                  value={valuesInput[boss.id] || ''}
+                                  onChange={(e) => handleInputChange(boss.id, e.target.value)}
+                                  onKeyPress={(e) => handleKeyPress(e, boss.id)}
+                                  className="bg-white border-2 border-yellow-400/50 focus:border-yellow-500 text-sm font-semibold text-gray-900 placeholder:text-gray-400"
+                                />
+                                <Button
+                                  onClick={() => handleAddValues(boss.id)}
+                                  className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold px-3 rounded-lg shadow-md"
+                                  size="sm"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <p className="font-black text-gray-900 text-lg">R$ {totalValue.toFixed(2)}</p>
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <p className="font-black text-red-600 text-lg">R$ {bossShare.toFixed(2)}</p>
+                            </td>
+                            <td className="px-4 py-4 text-right">
+                              <p className="font-black text-green-600 text-lg">R$ {myShare.toFixed(2)}</p>
+                            </td>
+                            <td className="px-4 py-4 text-center">
                               <Button
-                                onClick={() => handleAddValues(boss.id)}
-                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold px-3"
+                                variant="outline"
                                 size="sm"
+                                onClick={() => removeBoss(boss.id)}
+                                className="border-2 border-red-400 text-red-600 hover:bg-red-50 font-bold"
                               >
-                                <Plus className="w-4 h-4" />
+                                <Trash2 className="w-4 h-4" />
                               </Button>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <p className="font-mono-value text-yellow-400">R$ {totalValue.toFixed(2)}</p>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <p className="font-mono-value text-red-400">R$ {bossShare.toFixed(2)}</p>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <p className="font-mono-value text-green-400">R$ {myShare.toFixed(2)}</p>
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeBoss(boss.id)}
-                              className="border-red-400/30 text-red-400 hover:bg-red-400/10"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Resumo de Totais */}
-            {state.bosses.length > 0 && (
-              <div className="bg-background/50 border-t border-yellow-400/20 p-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-xs font-semibold text-yellow-400 uppercase">Total Geral</p>
-                    <p className="font-mono-value text-lg text-yellow-400">R$ {state.totalGeneral.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-red-400 uppercase">Enviado para Patrões</p>
-                    <p className="font-mono-value text-lg text-red-400">R$ {state.totalSentToBosses.toFixed(2)}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-green-400 uppercase">Meu Faturamento</p>
-                    <p className="font-mono-value text-lg text-green-400">R$ {state.myEarnings.toFixed(2)}</p>
-                  </div>
-                  {state.totalGeneral > 0 && (
-                    <div>
-                      <p className="text-xs font-semibold text-yellow-400 uppercase">Percentual</p>
-                      <p className="text-sm text-foreground">
-                        {((state.totalSentToBosses / state.totalGeneral) * 100).toFixed(1)}% para patrões
-                      </p>
-                    </div>
-                  )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-              </div>
+
+                {/* Resumo de Totais */}
+                <div className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-400 p-6 rounded-xl border-4 border-yellow-600 shadow-lg">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="bg-white/90 p-4 rounded-lg">
+                      <p className="text-xs font-black text-yellow-600 uppercase">Total Geral</p>
+                      <p className="font-black text-2xl text-yellow-600">R$ {state.totalGeneral.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-white/90 p-4 rounded-lg">
+                      <p className="text-xs font-black text-red-600 uppercase">Enviado</p>
+                      <p className="font-black text-2xl text-red-600">R$ {state.totalSentToBosses.toFixed(2)}</p>
+                    </div>
+                    <div className="bg-white/90 p-4 rounded-lg">
+                      <p className="text-xs font-black text-green-600 uppercase">Meu Faturamento</p>
+                      <p className="font-black text-2xl text-green-600">R$ {state.myEarnings.toFixed(2)}</p>
+                    </div>
+                    {state.totalGeneral > 0 && (
+                      <div className="bg-white/90 p-4 rounded-lg">
+                        <p className="text-xs font-black text-gray-900 uppercase">Percentual</p>
+                        <p className="font-black text-2xl text-gray-900">
+                          {((state.totalSentToBosses / state.totalGeneral) * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
             )}
           </div>
-        </main>
+        </div>
       </div>
     </div>
   );
