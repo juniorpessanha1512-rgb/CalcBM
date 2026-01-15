@@ -2,14 +2,13 @@ import { useBossCalculator } from '@/hooks/useBossCalculator';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Trash2, Plus } from 'lucide-react';
 
 /**
  * Design: BM Calculadora Tripeiro Pro 2026
  * - Tema dark moderno com fundo visual atrativo
  * - Paleta: Navy/Black com acentos em dourado e vermelho
- * - Layout compacto e objetivo similar ao calcrb.com
+ * - Layout similar ao calcrb.com com campo de valores diários
  */
 export default function Home() {
   const {
@@ -23,9 +22,7 @@ export default function Home() {
 
   const [bossName, setBossName] = useState('');
   const [bossPercentage, setBossPercentage] = useState('');
-  const [openAddBoss, setOpenAddBoss] = useState(false);
-  const [openAddValue, setOpenAddValue] = useState<string | null>(null);
-  const [valueInput, setValueInput] = useState('');
+  const [valuesInput, setValuesInput] = useState<{ [key: string]: string }>({});
 
   const handleAddBoss = (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,16 +34,33 @@ export default function Home() {
     addBoss(bossName.trim(), percentageNum);
     setBossName('');
     setBossPercentage('');
-    setOpenAddBoss(false);
   };
 
-  const handleAddValue = (e: React.FormEvent, bossId: string) => {
-    e.preventDefault();
-    const value = parseFloat(valueInput);
-    if (!isNaN(value) && value > 0) {
+  const handleAddValues = (bossId: string) => {
+    const input = valuesInput[bossId] || '';
+    if (!input.trim()) return;
+
+    // Separar valores por + e adicionar cada um
+    const values = input
+      .split('+')
+      .map(v => parseFloat(v.trim()))
+      .filter(v => !isNaN(v) && v > 0);
+
+    values.forEach(value => {
       addValue(bossId, value);
-      setValueInput('');
-      setOpenAddValue(null);
+    });
+
+    // Limpar input
+    setValuesInput({ ...valuesInput, [bossId]: '' });
+  };
+
+  const handleInputChange = (bossId: string, value: string) => {
+    setValuesInput({ ...valuesInput, [bossId]: value });
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent, bossId: string) => {
+    if (e.key === 'Enter') {
+      handleAddValues(bossId);
     }
   };
 
@@ -100,7 +114,7 @@ export default function Home() {
         <main className="container py-8">
           {/* Formulário de Entrada */}
           <div className="card-elevated-lg p-6 mb-8 bg-card/80 backdrop-blur-sm border-yellow-400/20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <form onSubmit={handleAddBoss} className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-foreground">Nome do Patrão:</label>
                 <Input
@@ -124,12 +138,12 @@ export default function Home() {
                 />
               </div>
               <Button 
-                onClick={handleAddBoss} 
+                type="submit"
                 className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold"
               >
                 💾 Salvar
               </Button>
-            </div>
+            </form>
           </div>
 
           {/* Tabela de Patrões */}
@@ -148,6 +162,7 @@ export default function Home() {
                     <tr>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-yellow-400">Patrão</th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-yellow-400">Valores</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-yellow-400">Valores Diários (separados por +)</th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-yellow-400">Total (R$)</th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-red-400">Repasse (R$)</th>
                       <th className="px-4 py-3 text-right text-sm font-semibold text-green-400">Meu (R$)</th>
@@ -159,6 +174,9 @@ export default function Home() {
                       const totalValue = boss.values.reduce((sum, val) => sum + val, 0);
                       const bossShare = totalValue * (boss.percentage / 100);
                       const myShare = totalValue - bossShare;
+                      const valuesDisplay = boss.values.length > 0 
+                        ? boss.values.map(v => v.toFixed(0)).join(' + ')
+                        : '-';
 
                       return (
                         <tr key={boss.id} className="border-b border-yellow-400/10 hover:bg-background/30 transition-colors">
@@ -169,25 +187,25 @@ export default function Home() {
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <div className="flex flex-wrap gap-1">
-                              {boss.values.length === 0 ? (
-                                <span className="text-sm text-muted-foreground">-</span>
-                              ) : (
-                                boss.values.map((value, index) => (
-                                  <div
-                                    key={index}
-                                    className="flex items-center gap-1 bg-yellow-400/10 border border-yellow-400/30 px-2 py-1 rounded text-xs"
-                                  >
-                                    <span className="font-mono-value text-yellow-400">{value.toFixed(0)}</span>
-                                    <button
-                                      onClick={() => removeValue(boss.id, index)}
-                                      className="text-yellow-400/50 hover:text-yellow-400 transition-colors"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                ))
-                              )}
+                            <p className="text-sm text-yellow-400 font-mono-value">{valuesDisplay}</p>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex gap-2">
+                              <Input
+                                type="text"
+                                placeholder="Ex: 100+200+150"
+                                value={valuesInput[boss.id] || ''}
+                                onChange={(e) => handleInputChange(boss.id, e.target.value)}
+                                onKeyPress={(e) => handleKeyPress(e, boss.id)}
+                                className="bg-background/50 border-yellow-400/30 focus:border-yellow-400 text-sm"
+                              />
+                              <Button
+                                onClick={() => handleAddValues(boss.id)}
+                                className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold px-3"
+                                size="sm"
+                              >
+                                <Plus className="w-4 h-4" />
+                              </Button>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-right">
@@ -199,41 +217,7 @@ export default function Home() {
                           <td className="px-4 py-3 text-right">
                             <p className="font-mono-value text-green-400">R$ {myShare.toFixed(2)}</p>
                           </td>
-                          <td className="px-4 py-3 text-center space-x-2">
-                            <Dialog open={openAddValue === boss.id} onOpenChange={(open) => setOpenAddValue(open ? boss.id : null)}>
-                              <DialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="gap-1 border-yellow-400/30 text-yellow-400 hover:bg-yellow-400/10"
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="bg-card/95 backdrop-blur-sm border-yellow-400/30">
-                                <DialogHeader>
-                                  <DialogTitle className="text-yellow-400">Adicionar Valor para {boss.name}</DialogTitle>
-                                </DialogHeader>
-                                <form onSubmit={(e) => handleAddValue(e, boss.id)} className="space-y-4">
-                                  <Input
-                                    type="number"
-                                    placeholder="Ex: 150.50"
-                                    step="0.01"
-                                    min="0"
-                                    value={valueInput}
-                                    onChange={(e) => setValueInput(e.target.value)}
-                                    autoFocus
-                                    className="bg-background/50 border-yellow-400/30 focus:border-yellow-400"
-                                  />
-                                  <Button 
-                                    type="submit" 
-                                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-semibold"
-                                  >
-                                    Adicionar
-                                  </Button>
-                                </form>
-                              </DialogContent>
-                            </Dialog>
+                          <td className="px-4 py-3 text-center">
                             <Button
                               variant="outline"
                               size="sm"
