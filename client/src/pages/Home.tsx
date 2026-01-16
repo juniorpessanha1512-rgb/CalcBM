@@ -292,11 +292,11 @@ export default function Home() {
                       <p className="text-xs font-black text-green-600 uppercase">Meu Faturamento</p>
                       <p className="font-black text-2xl text-green-600">R$ {state.myEarnings.toFixed(2)}</p>
                     </div>
-                    {state.totalGeneral > 0 && (
+                    {state.bosses.length > 0 && (
                       <div className="bg-white/90 p-4 rounded-lg">
-                        <p className="text-xs font-black text-gray-900 uppercase">Percentual</p>
+                        <p className="text-xs font-black text-gray-900 uppercase">Percentual Patrões</p>
                         <p className="font-black text-2xl text-gray-900">
-                          {((state.totalSentToBosses / state.totalGeneral) * 100).toFixed(1)}%
+                          {(state.bosses.reduce((sum, boss) => sum + boss.percentage, 0)).toFixed(1)}%
                         </p>
                       </div>
                     )}
