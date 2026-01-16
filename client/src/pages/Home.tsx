@@ -2,7 +2,8 @@ import { useBossCalculator, Employee } from '@/hooks/useBossCalculator';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2, Plus, UserPlus, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Trash2, Plus, UserPlus, X, ChevronDown, ChevronUp, Cloud, Key } from 'lucide-react';
+import { toast } from 'sonner';
 
 /**
  * Design: BM Calculadora Tripeiro Pro 2026
@@ -13,6 +14,8 @@ import { Trash2, Plus, UserPlus, X, ChevronDown, ChevronUp } from 'lucide-react'
 export default function Home() {
   const {
     state,
+    syncKey,
+    setSyncKey,
     addBoss,
     removeBoss,
     addValue,
@@ -27,6 +30,8 @@ export default function Home() {
   const [valuesInput, setValuesInput] = useState<{ [key: string]: string }>({});
   const [sentAmountInput, setSentAmountInput] = useState<{ [key: string]: string }>({});
   const [expandedBossId, setExpandedBossId] = useState<string | null>(null);
+  const [tempSyncKey, setTempSyncKey] = useState('');
+  const [showSyncInput, setShowSyncInput] = useState(false);
 
   // Estado para novos funcionários
   const [newEmployees, setNewEmployees] = useState<Employee[]>([]);
@@ -100,6 +105,19 @@ export default function Home() {
     setExpandedBossId(expandedBossId === bossId ? null : bossId);
   };
 
+  const handleSyncKeySubmit = () => {
+    if (tempSyncKey.trim()) {
+      setSyncKey(tempSyncKey.trim());
+      setShowSyncInput(false);
+      setTempSyncKey('');
+    }
+  };
+
+  const handleLogout = () => {
+    setSyncKey('');
+    toast.info('Sessão encerrada. Dados locais mantidos.');
+  };
+
   return (
     <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center py-4 md:py-8">
       {/* Fundo Épico */}
@@ -118,6 +136,46 @@ export default function Home() {
 
       {/* Conteúdo */}
       <div className="relative z-10 w-full max-w-7xl px-2 md:px-4">
+        
+        {/* Barra de Sincronização */}
+        <div className="mb-4 flex justify-end">
+          {syncKey ? (
+            <div className="bg-green-600/90 backdrop-blur text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-green-400/50">
+              <Cloud className="w-4 h-4 animate-pulse" />
+              <span className="text-sm font-bold">Sincronizado: {syncKey}</span>
+              <button onClick={handleLogout} className="ml-2 hover:text-red-200">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              {showSyncInput ? (
+                <div className="flex gap-2 bg-white/10 backdrop-blur p-1 rounded-lg animate-in fade-in slide-in-from-right-4">
+                  <Input 
+                    placeholder="Sua Chave Secreta" 
+                    value={tempSyncKey}
+                    onChange={e => setTempSyncKey(e.target.value)}
+                    className="w-40 h-8 bg-white/90 text-black text-sm border-none"
+                  />
+                  <Button size="sm" onClick={handleSyncKeySubmit} className="h-8 bg-green-600 hover:bg-green-700 text-white">
+                    Entrar
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setShowSyncInput(false)} className="h-8 text-white hover:bg-white/20">
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <Button 
+                  onClick={() => setShowSyncInput(true)}
+                  className="bg-blue-600/80 hover:bg-blue-700 backdrop-blur text-white shadow-lg border border-blue-400/30"
+                >
+                  <Key className="w-4 h-4 mr-2" /> Sincronizar
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Card Principal */}
         <div className="bg-white/95 backdrop-blur-sm rounded-xl md:rounded-2xl shadow-2xl overflow-hidden border-2 md:border-4 border-yellow-400/30">
           {/* Header do Card */}
@@ -246,150 +304,104 @@ export default function Home() {
                 </p>
               </div>
             ) : (
-              <>
+              <div className="space-y-6">
                 {/* Visualização Desktop (Tabela) */}
-                <div className="hidden md:block overflow-x-auto mb-6">
-                  <table className="w-full border-collapse">
-                    <thead className="bg-gradient-to-r from-yellow-400 to-yellow-500">
+                <div className="hidden md:block overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-gray-800 text-white uppercase text-xs">
                       <tr>
-                        <th className="px-4 py-3 text-left text-sm font-black text-black uppercase rounded-tl-lg">Patrão / Equipe</th>
-                        <th className="px-4 py-3 text-left text-sm font-black text-black uppercase">Valores</th>
-                        <th className="px-4 py-3 text-left text-sm font-black text-black uppercase min-w-[180px]">Entrada</th>
-                        <th className="px-4 py-3 text-right text-sm font-black text-black uppercase">Total Bruto</th>
-                        <th className="px-4 py-3 text-right text-sm font-black text-red-600 uppercase">Repasse Patrão</th>
-                        <th className="px-4 py-3 text-right text-sm font-black text-green-600 uppercase">Meu Ganho</th>
-                        <th className="px-4 py-3 text-center text-sm font-black text-black uppercase">Status</th>
-                        <th className="px-4 py-3 text-center text-sm font-black text-black uppercase rounded-tr-lg">Ações</th>
+                        <th className="px-4 py-3">Patrão</th>
+                        <th className="px-4 py-3">Valores (R$)</th>
+                        <th className="px-4 py-3 text-right">Total</th>
+                        <th className="px-4 py-3 text-right">Meu Ganho</th>
+                        <th className="px-4 py-3 text-right">Funcionários</th>
+                        <th className="px-4 py-3 text-right">Repasse</th>
+                        <th className="px-4 py-3 text-center">Ações</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {state.bosses.map((boss, idx) => {
-                        const totalValue = boss.values.reduce((sum, val) => sum + val, 0);
-                        const myShare = totalValue * (boss.percentage / 100);
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {state.bosses.map((boss) => {
+                        const bossTotal = boss.values.reduce((a, b) => a + b, 0);
+                        const myShare = bossTotal * (boss.percentage / 100);
                         
-                        let employeesShareTotal = 0;
-                        const employeesShares = boss.employees.map(emp => {
-                          const share = totalValue * (emp.percentage / 100);
-                          employeesShareTotal += share;
-                          return { ...emp, share };
+                        let employeesShare = 0;
+                        boss.employees.forEach(emp => {
+                          employeesShare += bossTotal * (emp.percentage / 100);
                         });
 
-                        const bossShare = totalValue - myShare - employeesShareTotal;
-                        
-                        const valuesDisplay = boss.values.length > 0 
-                          ? boss.values.map(v => v.toFixed(0)).join(' + ')
-                          : '-';
-                        
-                        const amountSent = boss.amountSent || 0;
-                        let statusColor = 'bg-red-500';
-                        let statusText = 'Nao Enviado';
-                        
-                        if (amountSent > 0 && amountSent < bossShare) {
-                          statusColor = 'bg-yellow-500';
-                          statusText = 'Parcial';
-                        } else if (amountSent >= bossShare && bossShare > 0) {
-                          statusColor = 'bg-green-500';
-                          statusText = 'Enviado';
-                        }
+                        const totalDeductions = myShare + employeesShare;
+                        const bossShare = bossTotal - totalDeductions;
+                        const remainingToSend = bossShare - (boss.amountSent || 0);
 
                         return (
-                          <tr 
-                            key={boss.id} 
-                            className={`${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-yellow-50 transition-colors`}
-                          >
-                            <td className="px-4 py-4 align-top">
-                              <div>
-                                <p className="font-black text-gray-900 text-lg">{boss.name}</p>
-                                <p className="text-xs font-bold text-yellow-600 bg-yellow-100 inline-block px-2 py-0.5 rounded border border-yellow-200 mb-2">
-                                  Minha parte: {boss.percentage}%
-                                </p>
-                                {employeesShares.length > 0 && (
-                                  <div className="mt-2 space-y-1 border-l-2 border-blue-200 pl-2">
-                                    {employeesShares.map(emp => (
-                                      <div key={emp.id} className="text-sm flex justify-between items-center bg-blue-50 p-1 rounded pr-2">
-                                        <span className="font-semibold text-blue-900">{emp.name} <span className="text-xs text-blue-500">({emp.percentage}%)</span></span>
-                                        <span className="font-bold text-blue-700">R$ {emp.share.toFixed(2)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
+                          <tr key={boss.id} className="hover:bg-gray-50 transition-colors">
+                            <td className="px-4 py-3 font-bold text-gray-900">
+                              {boss.name}
+                              <div className="text-xs text-gray-500 font-normal">Minha %: {boss.percentage}%</div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex flex-wrap gap-1 mb-2 max-w-[200px]">
+                                {boss.values.map((val, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 cursor-pointer hover:bg-red-100 hover:text-red-800 transition-colors"
+                                    onClick={() => removeValue(boss.id, idx)}
+                                    title="Clique para remover"
+                                  >
+                                    {val}
+                                  </span>
+                                ))}
                               </div>
-                            </td>
-                            <td className="px-4 py-4 align-top">
-                              <p className="text-sm font-mono font-bold text-gray-700 break-all max-w-[150px]">{valuesDisplay}</p>
-                            </td>
-                            <td className="px-4 py-4 align-top">
                               <div className="flex gap-2">
                                 <Input
-                                  type="text"
-                                  placeholder="100+200"
+                                  placeholder="Valor"
+                                  className="w-24 h-8 text-sm text-black"
                                   value={valuesInput[boss.id] || ''}
                                   onChange={(e) => handleInputChange(boss.id, e.target.value)}
-                                  onKeyPress={(e) => handleKeyPress(e, boss.id)}
-                                  className="bg-white border-2 border-yellow-400/50 focus:border-yellow-500 text-sm font-semibold text-black placeholder:text-gray-400 w-full"
+                                  onKeyDown={(e) => handleKeyPress(e, boss.id)}
                                 />
                                 <Button
-                                  onClick={() => handleAddValues(boss.id)}
-                                  className="bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-black font-bold px-3 rounded-lg shadow-md"
                                   size="sm"
+                                  className="h-8 bg-green-600 hover:bg-green-700 text-white"
+                                  onClick={() => handleAddValues(boss.id)}
                                 >
                                   <Plus className="w-4 h-4" />
                                 </Button>
                               </div>
                             </td>
-                            <td className="px-4 py-4 text-right align-top">
-                              <p className="font-black text-gray-900 text-lg">R$ {totalValue.toFixed(2)}</p>
+                            <td className="px-4 py-3 text-right font-bold text-gray-900">
+                              R$ {bossTotal.toFixed(2)}
                             </td>
-                            <td className="px-4 py-4 text-right align-top bg-red-50/50">
-                              <p className="font-black text-red-600 text-lg">R$ {bossShare.toFixed(2)}</p>
-                              <p className="text-xs text-red-400 font-semibold">A Repassar</p>
+                            <td className="px-4 py-3 text-right font-bold text-blue-600 bg-blue-50/50">
+                              R$ {myShare.toFixed(2)}
                             </td>
-                            <td className="px-4 py-4 text-right align-top bg-green-50/50">
-                              <p className="font-black text-green-600 text-lg">R$ {myShare.toFixed(2)}</p>
-                              <p className="text-xs text-green-400 font-semibold">Lucro</p>
-                            </td>
-                            <td className="px-4 py-4 text-center align-top">
-                              <div className="flex flex-col gap-2 items-center">
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold text-white shadow-sm w-24 ${statusColor}`}>
-                                  {statusText}
-                                </span>
-                                <div className="flex gap-1 items-center justify-center mt-1">
-                                  <Input
-                                    type="number"
-                                    placeholder="0"
-                                    value={sentAmountInput[boss.id] || ''}
-                                    onChange={(e) => setSentAmountInput({ ...sentAmountInput, [boss.id]: e.target.value })}
-                                    className="bg-white border border-gray-300 text-xs h-7 w-16 px-1 text-center text-black"
-                                  />
-                                  <Button
-                                    size="sm"
-                                    className="h-7 px-2 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                                    onClick={() => {
-                                      const val = parseFloat(sentAmountInput[boss.id]);
-                                      if (!isNaN(val) && val > 0) {
-                                        markAsSent(boss.id, val);
-                                        setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
-                                      }
-                                    }}
-                                  >
-                                    OK
-                                  </Button>
+                            <td className="px-4 py-3 text-right">
+                              <div className="font-bold text-purple-600">R$ {employeesShare.toFixed(2)}</div>
+                              {boss.employees.length > 0 && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {boss.employees.map(emp => (
+                                    <div key={emp.id}>{emp.name}: R$ {(bossTotal * (emp.percentage/100)).toFixed(2)}</div>
+                                  ))}
                                 </div>
-                                {amountSent > 0 && (
-                                  <span className="text-xs font-bold text-gray-500">
-                                    Pago: R$ {amountSent.toFixed(2)}
-                                  </span>
-                                )}
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="font-bold text-green-600 text-lg">R$ {bossShare.toFixed(2)}</div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                Enviado: R$ {(boss.amountSent || 0).toFixed(2)}
+                              </div>
+                              <div className="text-xs font-bold text-red-500">
+                                Resta: R$ {remainingToSend.toFixed(2)}
                               </div>
                             </td>
-                            <td className="px-4 py-4 text-center align-top">
+                            <td className="px-4 py-3 text-center">
                               <Button
                                 variant="ghost"
-                                size="icon"
+                                size="sm"
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
                                 onClick={() => removeBoss(boss.id)}
-                                className="text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                               >
-                                <Trash2 className="w-5 h-5" />
+                                <Trash2 className="w-4 h-4" />
                               </Button>
                             </td>
                           </tr>
@@ -400,190 +412,142 @@ export default function Home() {
                 </div>
 
                 {/* Visualização Mobile (Cards) */}
-                <div className="md:hidden space-y-4 mb-6">
+                <div className="md:hidden space-y-4">
                   {state.bosses.map((boss) => {
-                    const totalValue = boss.values.reduce((sum, val) => sum + val, 0);
-                    const myShare = totalValue * (boss.percentage / 100);
+                    const bossTotal = boss.values.reduce((a, b) => a + b, 0);
+                    const myShare = bossTotal * (boss.percentage / 100);
                     
-                    let employeesShareTotal = 0;
-                    const employeesShares = boss.employees.map(emp => {
-                      const share = totalValue * (emp.percentage / 100);
-                      employeesShareTotal += share;
-                      return { ...emp, share };
+                    let employeesShare = 0;
+                    boss.employees.forEach(emp => {
+                      employeesShare += bossTotal * (emp.percentage / 100);
                     });
 
-                    const bossShare = totalValue - myShare - employeesShareTotal;
-                    
-                    const valuesDisplay = boss.values.length > 0 
-                      ? boss.values.map(v => v.toFixed(0)).join(' + ')
-                      : 'Sem valores';
-                    
-                    const amountSent = boss.amountSent || 0;
-                    let statusColor = 'bg-red-500';
-                    let statusText = 'Nao Enviado';
-                    
-                    if (amountSent > 0 && amountSent < bossShare) {
-                      statusColor = 'bg-yellow-500';
-                      statusText = 'Parcial';
-                    } else if (amountSent >= bossShare && bossShare > 0) {
-                      statusColor = 'bg-green-500';
-                      statusText = 'Enviado';
-                    }
-
+                    const totalDeductions = myShare + employeesShare;
+                    const bossShare = bossTotal - totalDeductions;
+                    const remainingToSend = bossShare - (boss.amountSent || 0);
                     const isExpanded = expandedBossId === boss.id;
 
                     return (
                       <div key={boss.id} className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
-                        {/* Header do Card Mobile */}
-                        <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-start">
+                        {/* Cabeçalho do Card */}
+                        <div 
+                          className="bg-gray-50 p-4 flex justify-between items-center cursor-pointer"
+                          onClick={() => toggleExpand(boss.id)}
+                        >
                           <div>
-                            <h3 className="font-black text-gray-900 text-lg">{boss.name}</h3>
-                            <div className="flex gap-2 mt-1">
-                              <span className="text-xs font-bold text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">
-                                Eu: {boss.percentage}%
-                              </span>
-                              <span className={`text-xs font-bold text-white px-2 py-0.5 rounded ${statusColor}`}>
-                                {statusText}
-                              </span>
-                            </div>
+                            <h3 className="font-bold text-lg text-gray-900">{boss.name}</h3>
+                            <div className="text-xs text-gray-500">Minha parte: {boss.percentage}%</div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeBoss(boss.id)}
-                            className="text-gray-400 hover:text-red-600 -mt-1 -mr-2"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </Button>
+                          <div className="flex items-center gap-3">
+                            <div className="text-right">
+                              <div className="text-xs text-gray-500">Repasse</div>
+                              <div className="font-bold text-green-600">R$ {bossShare.toFixed(2)}</div>
+                            </div>
+                            {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-400" /> : <ChevronDown className="w-5 h-5 text-gray-400" />}
+                          </div>
                         </div>
 
-                        {/* Corpo do Card Mobile */}
-                        <div className="p-4 space-y-4">
-                          {/* Input de Valores */}
-                          <div className="flex gap-2">
-                            <Input
-                              type="text"
-                              placeholder="Add: 100+50"
-                              value={valuesInput[boss.id] || ''}
-                              onChange={(e) => handleInputChange(boss.id, e.target.value)}
-                              className="bg-white border-gray-300 text-sm h-10 text-black"
-                            />
-                            <Button
-                              onClick={() => handleAddValues(boss.id)}
-                              className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold h-10 w-12"
-                            >
-                              <Plus className="w-5 h-5" />
-                            </Button>
-                          </div>
-
-                          {/* Resumo Financeiro */}
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-gray-50 p-2 rounded border border-gray-100">
-                              <p className="text-xs text-gray-500 uppercase font-bold">Total Bruto</p>
-                              <p className="text-lg font-black text-gray-900">R$ {totalValue.toFixed(2)}</p>
-                            </div>
-                            <div className="bg-green-50 p-2 rounded border border-green-100">
-                              <p className="text-xs text-green-600 uppercase font-bold">Meu Lucro</p>
-                              <p className="text-lg font-black text-green-700">R$ {myShare.toFixed(2)}</p>
-                            </div>
-                          </div>
-
-                          {/* Repasse Patrão */}
-                          <div className="bg-red-50 p-3 rounded border border-red-100 flex justify-between items-center">
+                        {/* Corpo do Card (Expandido) */}
+                        {isExpanded && (
+                          <div className="p-4 space-y-4 border-t border-gray-100">
+                            {/* Valores */}
                             <div>
-                              <p className="text-xs text-red-500 uppercase font-bold">Repasse Patrão</p>
-                              <p className="text-xl font-black text-red-600">R$ {bossShare.toFixed(2)}</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-xs text-gray-400 mb-1">Já pago: R$ {amountSent.toFixed(2)}</p>
-                              <div className="flex gap-1">
+                              <label className="text-xs font-bold text-gray-500 uppercase">Valores Recebidos</label>
+                              <div className="flex flex-wrap gap-2 my-2">
+                                {boss.values.map((val, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center px-2 py-1 rounded text-sm font-medium bg-green-100 text-green-800 border border-green-200"
+                                    onClick={() => removeValue(boss.id, idx)}
+                                  >
+                                    {val} <X className="w-3 h-3 ml-1 opacity-50" />
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="flex gap-2 mt-2">
                                 <Input
-                                  type="number"
-                                  placeholder="0"
-                                  value={sentAmountInput[boss.id] || ''}
-                                  onChange={(e) => setSentAmountInput({ ...sentAmountInput, [boss.id]: e.target.value })}
-                                  className="bg-white border-gray-300 h-8 w-16 text-xs px-1 text-black"
+                                  placeholder="Valor"
+                                  className="flex-1 h-10 text-black"
+                                  value={valuesInput[boss.id] || ''}
+                                  onChange={(e) => handleInputChange(boss.id, e.target.value)}
+                                  onKeyDown={(e) => handleKeyPress(e, boss.id)}
                                 />
                                 <Button
-                                  size="sm"
-                                  className="h-8 px-2 bg-blue-600 text-white"
-                                  onClick={() => {
-                                    const val = parseFloat(sentAmountInput[boss.id]);
-                                    if (!isNaN(val) && val > 0) {
-                                      markAsSent(boss.id, val);
-                                      setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
-                                    }
-                                  }}
+                                  className="h-10 w-12 bg-green-600 text-white"
+                                  onClick={() => handleAddValues(boss.id)}
                                 >
-                                  OK
+                                  <Plus className="w-5 h-5" />
                                 </Button>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Detalhes Expansíveis (Funcionários e Histórico) */}
-                          <div className="border-t border-gray-100 pt-2">
-                            <button 
-                              onClick={() => toggleExpand(boss.id)}
-                              className="w-full flex justify-between items-center text-sm text-gray-500 font-medium py-1"
-                            >
-                              <span>Ver detalhes e funcionários</span>
-                              {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                            </button>
-                            
-                            {isExpanded && (
-                              <div className="mt-3 space-y-3 animate-in slide-in-from-top-2 duration-200">
-                                {/* Valores Individuais */}
-                                <div>
-                                  <p className="text-xs font-bold text-gray-400 uppercase mb-1">Histórico de Entradas</p>
-                                  <p className="text-sm font-mono bg-gray-50 p-2 rounded text-gray-600 break-all">
-                                    {valuesDisplay}
-                                  </p>
+                            {/* Resumo Financeiro */}
+                            <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-lg">
+                              <div>
+                                <div className="text-xs text-gray-500">Total Bruto</div>
+                                <div className="font-bold text-gray-900">R$ {bossTotal.toFixed(2)}</div>
+                              </div>
+                              <div>
+                                <div className="text-xs text-blue-600 font-bold">Meu Ganho</div>
+                                <div className="font-bold text-blue-700">R$ {myShare.toFixed(2)}</div>
+                              </div>
+                              <div className="col-span-2 border-t border-gray-200 pt-2 mt-1">
+                                <div className="flex justify-between items-center">
+                                  <div className="text-xs text-purple-600 font-bold">Funcionários</div>
+                                  <div className="font-bold text-purple-700">R$ {employeesShare.toFixed(2)}</div>
                                 </div>
-
-                                {/* Lista de Funcionários */}
-                                {employeesShares.length > 0 && (
-                                  <div>
-                                    <p className="text-xs font-bold text-gray-400 uppercase mb-1">Equipe</p>
-                                    <div className="space-y-1">
-                                      {employeesShares.map(emp => (
-                                        <div key={emp.id} className="flex justify-between items-center bg-blue-50 p-2 rounded text-sm">
-                                          <span className="text-blue-900 font-medium">{emp.name} ({emp.percentage}%)</span>
-                                          <span className="text-blue-700 font-bold">R$ {emp.share.toFixed(2)}</span>
-                                        </div>
-                                      ))}
-                                    </div>
+                                {boss.employees.length > 0 && (
+                                  <div className="mt-1 space-y-1">
+                                    {boss.employees.map(emp => (
+                                      <div key={emp.id} className="flex justify-between text-xs text-gray-500">
+                                        <span>{emp.name} ({emp.percentage}%)</span>
+                                        <span>R$ {(bossTotal * (emp.percentage/100)).toFixed(2)}</span>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
-                            )}
+                            </div>
+
+                            {/* Ações */}
+                            <div className="pt-2 flex justify-end">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="w-full"
+                                onClick={() => removeBoss(boss.id)}
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" /> Remover Patrão
+                              </Button>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
-
-                {/* Totais Gerais (Fixo no fundo ou final da página) */}
-                <div className="bg-gray-900 text-white p-4 rounded-xl shadow-lg border border-gray-700">
-                  <h3 className="text-yellow-400 font-bold uppercase text-sm mb-3 border-b border-gray-700 pb-2">Resumo Geral do Dia</h3>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <p className="text-xs text-gray-400 uppercase">Total Bruto</p>
-                      <p className="text-lg md:text-xl font-black">R$ {state.totalGeneral.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-red-400 uppercase">A Repassar</p>
-                      <p className="text-lg md:text-xl font-black text-red-400">R$ {state.totalSentToBosses.toFixed(2)}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-green-400 uppercase">Meu Lucro</p>
-                      <p className="text-lg md:text-xl font-black text-green-400">R$ {state.myEarnings.toFixed(2)}</p>
-                    </div>
-                  </div>
-                </div>
-              </>
+              </div>
             )}
+
+            {/* Resumo Geral */}
+            <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="bg-gray-900 text-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-yellow-500">
+                <p className="text-sm text-gray-400 uppercase font-bold">Total Geral</p>
+                <p className="text-2xl md:text-3xl font-black text-yellow-400">R$ {state.totalGeneral.toFixed(2)}</p>
+              </div>
+              <div className="bg-blue-900 text-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-blue-500">
+                <p className="text-sm text-blue-200 uppercase font-bold">Meu Lucro</p>
+                <p className="text-2xl md:text-3xl font-black text-white">R$ {state.myEarnings.toFixed(2)}</p>
+              </div>
+              <div className="bg-purple-900 text-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-purple-500">
+                <p className="text-sm text-purple-200 uppercase font-bold">Total Funcionários</p>
+                <p className="text-2xl md:text-3xl font-black text-white">R$ {state.employeesEarnings.toFixed(2)}</p>
+              </div>
+              <div className="bg-green-900 text-white p-4 md:p-6 rounded-xl shadow-lg border-l-4 border-green-500">
+                <p className="text-sm text-green-200 uppercase font-bold">Total Repasse</p>
+                <p className="text-2xl md:text-3xl font-black text-white">R$ {state.totalSentToBosses.toFixed(2)}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

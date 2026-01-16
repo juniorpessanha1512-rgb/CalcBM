@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
+import { saveToCloud, loadFromCloud } from '../lib/supabase';
+import { toast } from 'sonner';
 
 export interface Employee {
   id: string;
@@ -23,9 +25,14 @@ export interface CalculatorState {
   employeesEarnings: number; // Total ganho pelos funcionários
 }
 
-const STORAGE_KEY = 'boss_calculator_data_v2'; // Mudando a chave para evitar conflitos com versão anterior
+const STORAGE_KEY = 'boss_calculator_data_v2';
+const SYNC_KEY_STORAGE = 'boss_calculator_sync_key';
 
 export function useBossCalculator() {
+  const [syncKey, setSyncKey] = useState<string>(() => {
+    return localStorage.getItem(SYNC_KEY_STORAGE) || '';
+  });
+
   const [state, setState] = useState<CalculatorState>(() => {
     // Tentar carregar dados do localStorage
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -42,7 +49,40 @@ export function useBossCalculator() {
   // Salvar estado no localStorage sempre que mudar
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    
+    // Se tiver chave de sincronização, salvar na nuvem também
+    if (syncKey) {
+      const saveTimeout = setTimeout(() => {
+        saveToCloud(syncKey, state).catch(err => {
+          console.error('Erro ao sincronizar:', err);
+          toast.error('Erro ao salvar na nuvem. Verifique sua conexão.');
+        });
+      }, 1000); // Debounce de 1s para não salvar a cada tecla
+      return () => clearTimeout(saveTimeout);
+    }
+  }, [state, syncKey]);
+
+  // Carregar dados da nuvem quando a chave mudar
+  useEffect(() => {
+    if (syncKey) {
+      localStorage.setItem(SYNC_KEY_STORAGE, syncKey);
+      loadFromCloud(syncKey).then(data => {
+        if (data) {
+          setState(data);
+          toast.success('Dados sincronizados com sucesso!');
+        } else {
+          // Se não tem dados na nuvem para essa chave, salvar os dados locais lá
+          saveToCloud(syncKey, state);
+          toast.info('Nova sessão de sincronização iniciada.');
+        }
+      }).catch(err => {
+        console.error('Erro ao carregar:', err);
+        toast.error('Erro ao carregar dados da nuvem.');
+      });
+    } else {
+      localStorage.removeItem(SYNC_KEY_STORAGE);
+    }
+  }, [syncKey]);
 
   // Recalcular totais
   const recalculateTotals = useCallback((bosses: Boss[]) => {
@@ -92,70 +132,88 @@ export function useBossCalculator() {
       employees,
       values: [],
     };
-    const newBosses = [...state.bosses, newBoss];
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = [...prev.bosses, newBoss];
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   // Remover patrão
   const removeBoss = useCallback((bossId: string) => {
-    const newBosses = state.bosses.filter(boss => boss.id !== bossId);
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = prev.bosses.filter(boss => boss.id !== bossId);
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   // Adicionar valor para um patrão
   const addValue = useCallback((bossId: string, value: number) => {
-    const newBosses = state.bosses.map(boss =>
-      boss.id === bossId
-        ? { ...boss, values: [...boss.values, value] }
-        : boss
-    );
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = prev.bosses.map(boss =>
+        boss.id === bossId
+          ? { ...boss, values: [...boss.values, value] }
+          : boss
+      );
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   // Remover valor de um patrão
   const removeValue = useCallback((bossId: string, valueIndex: number) => {
-    const newBosses = state.bosses.map(boss =>
-      boss.id === bossId
-        ? { ...boss, values: boss.values.filter((_, i) => i !== valueIndex) }
-        : boss
-    );
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = prev.bosses.map(boss =>
+        boss.id === bossId
+          ? { ...boss, values: boss.values.filter((_, i) => i !== valueIndex) }
+          : boss
+      );
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   // Limpar dados do dia
   const clearDayData = useCallback(() => {
-    const newBosses = state.bosses.map(boss => ({ ...boss, values: [] }));
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = prev.bosses.map(boss => ({ ...boss, values: [] }));
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   // Editar patrão
   const editBoss = useCallback((bossId: string, name: string, percentage: number, employees: Employee[]) => {
-    const newBosses = state.bosses.map(boss =>
-      boss.id === bossId
-        ? { ...boss, name, percentage, employees }
-        : boss
-    );
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = prev.bosses.map(boss =>
+        boss.id === bossId
+          ? { ...boss, name, percentage, employees }
+          : boss
+      );
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   // Marcar repasse como enviado
   const markAsSent = useCallback((bossId: string, amount: number) => {
-    const newBosses = state.bosses.map(boss =>
-      boss.id === bossId
-        ? { ...boss, amountSent: (boss.amountSent || 0) + amount }
-        : boss
-    );
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = prev.bosses.map(boss =>
+        boss.id === bossId
+          ? { ...boss, amountSent: (boss.amountSent || 0) + amount }
+          : boss
+      );
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   // Resetar repassos
   const resetSentAmounts = useCallback(() => {
-    const newBosses = state.bosses.map(boss => ({ ...boss, amountSent: 0 }));
-    setState(recalculateTotals(newBosses));
-  }, [state.bosses, recalculateTotals]);
+    setState(prev => {
+      const newBosses = prev.bosses.map(boss => ({ ...boss, amountSent: 0 }));
+      return recalculateTotals(newBosses);
+    });
+  }, [recalculateTotals]);
 
   return {
     state,
+    syncKey,
+    setSyncKey,
     addBoss,
     removeBoss,
     addValue,
