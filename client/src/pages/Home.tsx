@@ -18,11 +18,14 @@ export default function Home() {
     addValue,
     removeValue,
     clearDayData,
+    markAsSent,
+    resetSentAmounts,
   } = useBossCalculator();
 
   const [bossName, setBossName] = useState('');
   const [bossPercentage, setBossPercentage] = useState('');
   const [valuesInput, setValuesInput] = useState<{ [key: string]: string }>({});
+  const [sentAmountInput, setSentAmountInput] = useState<{ [key: string]: string }>({});
 
   const handleAddBoss = (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,6 +166,7 @@ export default function Home() {
                         <th className="px-4 py-3 text-right text-sm font-black text-black uppercase">Total</th>
                         <th className="px-4 py-3 text-right text-sm font-black text-red-600 uppercase">Repasse</th>
                         <th className="px-4 py-3 text-right text-sm font-black text-green-600 uppercase">Meu</th>
+                        <th className="px-4 py-3 text-center text-sm font-black text-black uppercase">Status</th>
                         <th className="px-4 py-3 text-center text-sm font-black text-black uppercase">Ações</th>
                       </tr>
                     </thead>
@@ -174,6 +178,18 @@ export default function Home() {
                         const valuesDisplay = boss.values.length > 0 
                           ? boss.values.map(v => v.toFixed(0)).join(' + ')
                           : '-';
+                        
+                        const amountSent = boss.amountSent || 0;
+                        let statusColor = 'bg-red-500';
+                        let statusText = 'Nao Enviado';
+                        
+                        if (amountSent > 0 && amountSent < bossShare) {
+                          statusColor = 'bg-yellow-500';
+                          statusText = 'Parcial';
+                        } else if (amountSent >= bossShare && bossShare > 0) {
+                          statusColor = 'bg-green-500';
+                          statusText = 'Enviado';
+                        }
 
                         return (
                           <tr 
@@ -216,6 +232,30 @@ export default function Home() {
                             </td>
                             <td className="px-4 py-4 text-right">
                               <p className="font-black text-green-600 text-lg">R$ {myShare.toFixed(2)}</p>
+                            </td>
+                            <td className="px-4 py-4 text-center">
+                              <div className="flex gap-1 items-center">
+                                <Input
+                                  type="number"
+                                  placeholder="0"
+                                  value={sentAmountInput[boss.id] || ''}
+                                  onChange={(e) => setSentAmountInput({ ...sentAmountInput, [boss.id]: e.target.value })}
+                                  className="bg-white border-2 border-gray-300 focus:border-blue-500 text-xs font-semibold text-gray-900 placeholder:text-gray-400 w-16 h-8 px-2"
+                                />
+                                <Button
+                                  onClick={() => {
+                                    const amount = parseFloat(sentAmountInput[boss.id] || '0');
+                                    if (amount > 0) {
+                                      markAsSent(boss.id, amount);
+                                      setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
+                                    }
+                                  }}
+                                  className={`${statusColor} hover:opacity-80 text-white font-bold px-2 py-1 rounded-lg text-xs shadow-md transition-all`}
+                                  size="sm"
+                                >
+                                  {statusText}
+                                </Button>
+                              </div>
                             </td>
                             <td className="px-4 py-4 text-center">
                               <Button

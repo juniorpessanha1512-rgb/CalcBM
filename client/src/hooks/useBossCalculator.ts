@@ -5,6 +5,7 @@ export interface Boss {
   name: string;
   percentage: number;
   values: number[];
+  amountSent?: number; // Quanto já foi repassado
 }
 
 export interface CalculatorState {
@@ -113,6 +114,22 @@ export function useBossCalculator() {
     setState(recalculateTotals(newBosses));
   }, [state.bosses, recalculateTotals]);
 
+  // Marcar repasse como enviado
+  const markAsSent = useCallback((bossId: string, amount: number) => {
+    const newBosses = state.bosses.map(boss =>
+      boss.id === bossId
+        ? { ...boss, amountSent: (boss.amountSent || 0) + amount }
+        : boss
+    );
+    setState(recalculateTotals(newBosses));
+  }, [state.bosses, recalculateTotals]);
+
+  // Resetar repassos
+  const resetSentAmounts = useCallback(() => {
+    const newBosses = state.bosses.map(boss => ({ ...boss, amountSent: 0 }));
+    setState(recalculateTotals(newBosses));
+  }, [state.bosses, recalculateTotals]);
+
   return {
     state,
     addBoss,
@@ -121,5 +138,7 @@ export function useBossCalculator() {
     removeValue,
     clearDayData,
     editBoss,
+    markAsSent,
+    resetSentAmounts,
   };
 }
