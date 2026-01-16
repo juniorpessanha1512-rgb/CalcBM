@@ -119,7 +119,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center py-4 md:py-8">
+    <div className="min-h-screen bg-black relative flex flex-col items-center justify-start py-4 md:py-8 overflow-x-hidden overflow-y-auto">
       {/* Fundo Épico */}
       <div 
         className="fixed inset-0 opacity-100"
@@ -138,7 +138,7 @@ export default function Home() {
       <div className="relative z-10 w-full max-w-7xl px-2 md:px-4">
         
         {/* Barra de Sincronização */}
-        <div className="mb-4 flex justify-end">
+        <div className="sticky top-0 z-50 mb-4 flex justify-end py-2">
           {syncKey ? (
             <div className="bg-green-600/90 backdrop-blur text-white px-4 py-2 rounded-full flex items-center gap-2 shadow-lg border border-green-400/50">
               <Cloud className="w-4 h-4 animate-pulse" />
@@ -393,6 +393,37 @@ export default function Home() {
                               <div className="text-xs font-bold text-red-500">
                                 Resta: R$ {remainingToSend.toFixed(2)}
                               </div>
+                              <div className="mt-2 flex gap-1">
+                                <Input
+                                  type="number"
+                                  placeholder="Enviado"
+                                  className="w-20 h-6 text-xs text-black bg-white border-gray-300"
+                                  value={sentAmountInput[boss.id] || ''}
+                                  onChange={(e) => setSentAmountInput({ ...sentAmountInput, [boss.id]: e.target.value })}
+                                  onKeyPress={(e) => {
+                                    if (e.key === 'Enter') {
+                                      const val = parseFloat(sentAmountInput[boss.id]);
+                                      if (!isNaN(val) && val > 0) {
+                                        markAsSent(boss.id, val);
+                                        setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
+                                      }
+                                    }
+                                  }}
+                                />
+                                <Button 
+                                  size="sm" 
+                                  className="h-6 px-2 bg-green-600 hover:bg-green-700 text-white text-xs"
+                                  onClick={() => {
+                                    const val = parseFloat(sentAmountInput[boss.id]);
+                                    if (!isNaN(val) && val > 0) {
+                                      markAsSent(boss.id, val);
+                                      setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
+                                    }
+                                  }}
+                                >
+                                  OK
+                                </Button>
+                              </div>
                             </td>
                             <td className="px-4 py-3 text-center">
                               <Button
@@ -506,6 +537,39 @@ export default function Home() {
                                     ))}
                                   </div>
                                 )}
+                              </div>
+                              
+                              {/* Área de Repasse Enviado (Mobile) */}
+                              <div className="col-span-2 border-t border-gray-200 pt-2 mt-1 bg-green-50 p-2 rounded">
+                                <div className="flex justify-between items-center mb-2">
+                                  <div className="text-xs text-green-800 font-bold uppercase">Repasse</div>
+                                  <div className="text-right">
+                                    <div className="text-xs text-gray-500">Enviado: <span className="font-bold text-green-700">R$ {(boss.amountSent || 0).toFixed(2)}</span></div>
+                                    <div className="text-xs text-gray-500">Resta: <span className="font-bold text-red-600">R$ {(bossShare - (boss.amountSent || 0)).toFixed(2)}</span></div>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <Input
+                                    type="number"
+                                    placeholder="Valor"
+                                    className="bg-white border-green-200 text-black h-8 text-sm w-full"
+                                    value={sentAmountInput[boss.id] || ''}
+                                    onChange={(e) => setSentAmountInput({ ...sentAmountInput, [boss.id]: e.target.value })}
+                                  />
+                                  <Button 
+                                    size="sm" 
+                                    className="bg-green-600 hover:bg-green-700 text-white h-8 px-3"
+                                    onClick={() => {
+                                      const val = parseFloat(sentAmountInput[boss.id]);
+                                      if (!isNaN(val) && val > 0) {
+                                        markAsSent(boss.id, val);
+                                        setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
+                                      }
+                                    }}
+                                  >
+                                    OK
+                                  </Button>
+                                </div>
                               </div>
                             </div>
 
