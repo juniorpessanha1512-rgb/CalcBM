@@ -39,15 +39,17 @@ export function useBossCalculator() {
   const recalculateTotals = useCallback((bosses: Boss[]) => {
     let totalGeneral = 0;
     let totalSentToBosses = 0;
+    let myEarnings = 0;
 
     bosses.forEach(boss => {
       const bossTotal = boss.values.reduce((sum, val) => sum + val, 0);
-      const bossShare = bossTotal * (boss.percentage / 100);
+      // A porcentagem é o que você FICA, então o repasse é o restante
+      const myShare = bossTotal * (boss.percentage / 100);
+      const bossShare = bossTotal - myShare;
       totalGeneral += bossTotal;
       totalSentToBosses += bossShare;
+      myEarnings += myShare;
     });
-
-    const myEarnings = totalGeneral - totalSentToBosses;
 
     return {
       bosses,
