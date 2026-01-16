@@ -1,9 +1,16 @@
 import { useState, useCallback, useEffect } from 'react';
 
-export interface Boss {
+export interface Employee {
   id: string;
   name: string;
   percentage: number;
+}
+
+export interface Boss {
+  id: string;
+  name: string;
+  percentage: number; // Minha porcentagem
+  employees: Employee[]; // Lista de funcionários do patrão
   values: number[];
   amountSent?: number; // Quanto já foi repassado
 }
@@ -13,9 +20,10 @@ export interface CalculatorState {
   totalGeneral: number;
   totalSentToBosses: number;
   myEarnings: number;
+  employeesEarnings: number; // Total ganho pelos funcionários
 }
 
-const STORAGE_KEY = 'boss_calculator_data';
+const STORAGE_KEY = 'boss_calculator_data_v2'; // Mudando a chave para evitar conflitos com versão anterior
 
 export function useBossCalculator() {
   const [state, setState] = useState<CalculatorState>(() => {
@@ -25,10 +33,10 @@ export function useBossCalculator() {
       try {
         return JSON.parse(saved);
       } catch {
-        return { bosses: [], totalGeneral: 0, totalSentToBosses: 0, myEarnings: 0 };
+        return { bosses: [], totalGeneral: 0, totalSentToBosses: 0, myEarnings: 0, employeesEarnings: 0 };
       }
     }
-    return { bosses: [], totalGeneral: 0, totalSentToBosses: 0, myEarnings: 0 };
+    return { bosses: [], totalGeneral: 0, totalSentToBosses: 0, myEarnings: 0, employeesEarnings: 0 };
   });
 
   // Salvar estado no localStorage sempre que mudar
@@ -41,15 +49,29 @@ export function useBossCalculator() {
     let totalGeneral = 0;
     let totalSentToBosses = 0;
     let myEarnings = 0;
+    let employeesEarnings = 0;
 
     bosses.forEach(boss => {
       const bossTotal = boss.values.reduce((sum, val) => sum + val, 0);
-      // A porcentagem é o que você FICA, então o repasse é o restante
+      
+      // Cálculo baseado no exemplo:
+      // Patrão Itaú - Lipe 15% + 10% meu = 25%
+      // Caiu 1000 -> 150 Lipe / 100 meu / 750 repasse
+      
       const myShare = bossTotal * (boss.percentage / 100);
-      const bossShare = bossTotal - myShare;
+      
+      let currentBossEmployeesShare = 0;
+      boss.employees.forEach(emp => {
+        currentBossEmployeesShare += bossTotal * (emp.percentage / 100);
+      });
+
+      const totalDeductions = myShare + currentBossEmployeesShare;
+      const bossShare = bossTotal - totalDeductions;
+
       totalGeneral += bossTotal;
       totalSentToBosses += bossShare;
       myEarnings += myShare;
+      employeesEarnings += currentBossEmployeesShare;
     });
 
     return {
@@ -57,15 +79,17 @@ export function useBossCalculator() {
       totalGeneral,
       totalSentToBosses,
       myEarnings,
+      employeesEarnings
     };
   }, []);
 
-  // Adicionar novo patrão
-  const addBoss = useCallback((name: string, percentage: number) => {
+  // Adicionar novo patrão com funcionários
+  const addBoss = useCallback((name: string, percentage: number, employees: Employee[] = []) => {
     const newBoss: Boss = {
       id: Date.now().toString(),
       name,
       percentage,
+      employees,
       values: [],
     };
     const newBosses = [...state.bosses, newBoss];
@@ -105,10 +129,10 @@ export function useBossCalculator() {
   }, [state.bosses, recalculateTotals]);
 
   // Editar patrão
-  const editBoss = useCallback((bossId: string, name: string, percentage: number) => {
+  const editBoss = useCallback((bossId: string, name: string, percentage: number, employees: Employee[]) => {
     const newBosses = state.bosses.map(boss =>
       boss.id === bossId
-        ? { ...boss, name, percentage }
+        ? { ...boss, name, percentage, employees }
         : boss
     );
     setState(recalculateTotals(newBosses));
