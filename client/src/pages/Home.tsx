@@ -169,8 +169,8 @@ export default function Home() {
                     <tbody>
                       {state.bosses.map((boss, idx) => {
                         const totalValue = boss.values.reduce((sum, val) => sum + val, 0);
-                        const bossShare = totalValue * (boss.percentage / 100);
-                        const myShare = totalValue - bossShare;
+                        const myShare = totalValue * (boss.percentage / 100);
+                        const bossShare = totalValue - myShare;
                         const valuesDisplay = boss.values.length > 0 
                           ? boss.values.map(v => v.toFixed(0)).join(' + ')
                           : '-';
