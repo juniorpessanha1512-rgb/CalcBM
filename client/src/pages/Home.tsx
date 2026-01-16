@@ -234,27 +234,30 @@ export default function Home() {
                               <p className="font-black text-green-600 text-lg">R$ {myShare.toFixed(2)}</p>
                             </td>
                             <td className="px-4 py-4 text-center">
-                              <div className="flex gap-1 items-center">
-                                <Input
-                                  type="number"
-                                  placeholder="0"
-                                  value={sentAmountInput[boss.id] || ''}
-                                  onChange={(e) => setSentAmountInput({ ...sentAmountInput, [boss.id]: e.target.value })}
-                                  className="bg-white border-2 border-gray-300 focus:border-blue-500 text-xs font-semibold text-gray-900 placeholder:text-gray-400 w-16 h-8 px-2"
-                                />
-                                <Button
-                                  onClick={() => {
-                                    const amount = parseFloat(sentAmountInput[boss.id] || '0');
-                                    if (amount > 0) {
-                                      markAsSent(boss.id, amount);
-                                      setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
-                                    }
-                                  }}
-                                  className={`${statusColor} hover:opacity-80 text-white font-bold px-2 py-1 rounded-lg text-xs shadow-md transition-all`}
-                                  size="sm"
-                                >
-                                  {statusText}
-                                </Button>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex gap-1 items-center">
+                                  <Input
+                                    type="number"
+                                    placeholder="0"
+                                    value={sentAmountInput[boss.id] || ''}
+                                    onChange={(e) => setSentAmountInput({ ...sentAmountInput, [boss.id]: e.target.value })}
+                                    className="bg-white border-2 border-gray-300 focus:border-blue-500 text-xs font-semibold text-gray-900 placeholder:text-gray-400 w-16 h-8 px-2"
+                                  />
+                                  <Button
+                                    onClick={() => {
+                                      const amount = parseFloat(sentAmountInput[boss.id] || '0');
+                                      if (amount > 0) {
+                                        markAsSent(boss.id, amount);
+                                        setSentAmountInput({ ...sentAmountInput, [boss.id]: '' });
+                                      }
+                                    }}
+                                    className={`${statusColor} hover:opacity-80 text-white font-bold px-2 py-1 rounded-lg text-xs shadow-md transition-all`}
+                                    size="sm"
+                                  >
+                                    {statusText}
+                                  </Button>
+                                </div>
+                                <p className="text-xs font-bold text-gray-600">Repassado: R$ {(amountSent).toFixed(2)}</p>
                               </div>
                             </td>
                             <td className="px-4 py-4 text-center">
